@@ -5,6 +5,7 @@ from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 
 import math
+from scipy.spatial import KDTree
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -44,15 +45,7 @@ class WaypointUpdater(object):
         
         self.loop()
 
-    def loop(self):
-    	rate = rospy.Rate(50)
-    	while not rospy.is_shutdown():
-    		if self.pose and self.base_waypoints:
-    			closest_waypoint_idx = self.get_closest_waypoint_idx()
-    			self.publish_waypoints(closest_waypoint_idx)
-    		rate.sleep()
-
-   	def get_closest_waypoint_idx(self):
+    def get_closest_waypoint_idx(self):
    		x = self.pose.pose.position.x
    		y = self.pose.pose.position.y
    		closest_idx = self.waypoint_tree.query([x,y],1)[1]
@@ -69,6 +62,17 @@ class WaypointUpdater(object):
    			closest_idx = (closestidx+1) % len(self.waypoints_2d)
 
    		return closest_idx
+
+    def loop(self):
+    	rate = rospy.Rate(50)
+    	while not rospy.is_shutdown():
+    		if self.pose and self.base_waypoints:
+    			closest_waypoint_idx = self.get_closest_waypoint_idx()
+    			self.publish_waypoints(closest_waypoint_idx)
+    		rate.sleep()
+
+
+
 
     def publish_waypoints(self, closest_idx) :
     	lane = Lane()
