@@ -6,6 +6,7 @@ from styx_msgs.msg import Lane, Waypoint
 
 import math
 from scipy.spatial import KDTree
+import numpy as np
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -47,6 +48,7 @@ class WaypointUpdater(object):
 
     def get_closest_waypoint_idx(self):
    		x = self.pose.pose.position.x
+   		rospy.loginfo("X")
    		y = self.pose.pose.position.y
    		closest_idx = self.waypoint_tree.query([x,y],1)[1]
    		closest_coord = self.waypoints_2d[closest_idx]
@@ -59,14 +61,14 @@ class WaypointUpdater(object):
    		val = np.dot(cl_vect-prev_vect, pos_vect-cl_vect)
 
    		if val > 0:
-   			closest_idx = (closestidx+1) % len(self.waypoints_2d)
+   			closest_idx = (closest_idx+1) % len(self.waypoints_2d)
 
    		return closest_idx
 
     def loop(self):
     	rate = rospy.Rate(50)
     	while not rospy.is_shutdown():
-    		if self.pose and self.base_waypoints:
+    		if self.pose and self.base_waypoints and self.waypoint_tree:
     			closest_waypoint_idx = self.get_closest_waypoint_idx()
     			self.publish_waypoints(closest_waypoint_idx)
     		rate.sleep()
@@ -84,10 +86,15 @@ class WaypointUpdater(object):
         self.pose = msg
 
     def waypoints_cb(self, waypoints):
+    	rospy.loginfo("-1")
         self.base_waypoints = waypoints
+        rospy.loginfo("-2")
         if not self.waypoints_2d:
+        	rospy.loginfo("-3")
         	self.waypoints_2d = [[waypoints.pose.pose.position.x,waypoints.pose.pose.position.y] for waypoints in waypoints.waypoints]
+        	rospy.loginfo("-4")
         	self.waypoint_tree = KDTree(self.waypoints_2d)
+        rospy.loginfo("-5")
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
