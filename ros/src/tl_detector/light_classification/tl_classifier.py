@@ -2,13 +2,14 @@ from styx_msgs.msg import TrafficLight
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-
+import cv2
 
 class TLClassifier(object):
     def __init__(self):
         self.imgcount = 0
         #TODO load classifier
-        PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
+        #PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
+        PATH_TO_CKPT = "tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
         self.detection_graph = tf.Graph()
         with self. detection_graph.as_default():
             od_graph_def = tf.GraphDef()
@@ -71,11 +72,22 @@ class TLClassifier(object):
                     im = Image.fromarray(image)
                     im.save("tl_a_"+str(self.imgcount)+".png")
                     im = im.crop((x1,y1,x2,y2))
-                    im.save("tl_b_"+str(self.imgcount)+".png")
+                    
+                    tl_im = self.load_image_into_numpy_array(im)
+                    tl_im =  cv2.cvtColor(tl_im, cv2.COLOR_RGB2HSV)
+
+                    G_MIN = np.array([100/2, 160, 160], np.uint8)
+                    G_MAX = np.array([140/2, 255, 255], np.uint8)
+                    
+                    dst = cv2.inRange(tl_im, G_MIN, G_MAX)
+                    no_green = cv2.countNonZero(dst)
+                    im.save("tl_b_"+str(self.imgcount)+"_"+str(no_green)+".png")
+                    cv2.imwrite("tl_b_"+str(self.imgcount)+"_"+str(no_green)+"_ir.png",dst)
                     self.imgcount = self.imgcount + 1
                 
         #TODO implement light color prediction
         return TrafficLight.UNKNOWN
+#         return 0
     
     def load_image_into_numpy_array(self,image):
         (im_width, im_height) = image.size
@@ -85,7 +97,7 @@ class TLClassifier(object):
 if __name__ == '__main__':
     x = TLClassifier()
 #    print(x.detection_graph)
-    image = Image.open("test_images/img5.jpg")
+    image = Image.open("test_images/carla_green.jpg")
     image_np = x.load_image_into_numpy_array(image)
     x.get_classification(image_np)
     
