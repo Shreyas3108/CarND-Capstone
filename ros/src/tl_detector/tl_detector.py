@@ -22,7 +22,8 @@ class TLDetector(object):
         self.waypoints = None
         self.camera_image = None
         self.lights = []
-
+        self.waypoints_2d = None
+        self.waypoint_tree = None
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
@@ -50,12 +51,14 @@ class TLDetector(object):
         self.last_wp = -1
         self.state_count = 0
 
+ 
         rospy.spin()
 
     def pose_cb(self, msg):
         self.pose = msg
 
     def waypoints_cb(self, waypoints):
+        self.waypoints = waypoints
         rospy.loginfo("-2")
         if not self.waypoints_2d:
             rospy.loginfo("-3")
@@ -74,6 +77,7 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+       
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
@@ -84,6 +88,10 @@ class TLDetector(object):
         of times till we start using it. Otherwise the previous stable state is
         used.
         '''
+#         rospy.loginfo('---')
+#         rospy.loginfo(self.state)
+#         rospy.loginfo(light_wp)
+#         rospy.loginfo(state)
         if self.state != state:
             self.state_count = 0
             self.state = state
@@ -107,7 +115,7 @@ class TLDetector(object):
 
         """
         closest_idx = self.waypoint_tree.query([x,y],1)[1]
-        closest_idx
+        return closest_idx
 
     def get_light_state(self, light):
         """Determines the current color of the traffic light
@@ -120,15 +128,15 @@ class TLDetector(object):
 
         """
         
-        return light.state
-#         if(not self.has_image):
-#             self.prev_light_loc = None
-#             return False
-# 
-#         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-# 
-#         #Get classification
-#         return self.light_classifier.get_classification(cv_image)
+#         return light.state
+        if(not self.has_image):
+            self.prev_light_loc = None
+            return False
+ 
+        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "rgb8")
+ 
+        #Get classification
+        return self.light_classifier.get_classification(cv_image)
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
