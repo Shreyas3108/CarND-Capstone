@@ -10,7 +10,11 @@ class TLClassifier(object):
         #TODO load classifier
         'SSD Mobile requires TF higher than 1.3'
         if tf.__version__ == "1.3.0" :
-            PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_coco_2017_11_08/frozen_inference_graph.pb"
+            'This model does not return could bounding boxes'
+#             PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_coco_2017_11_08/frozen_inference_graph.pb"
+
+#             PATH_TO_CKPT = "light_classification/tf_models/ssd_inception_v2_coco_11_06_2017/frozen_inference_graph.pb"
+            PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_coco_11_06_2017/frozen_inference_graph.pb"
         else:
             PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
 #         PATH_TO_CKPT = "tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
