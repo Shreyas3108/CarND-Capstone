@@ -6,6 +6,7 @@ import cv2
 
 class TLClassifier(object):
     def __init__(self):
+        self.DEBUG = False 
         self.imgcount = 0
         #TODO load classifier
         'SSD Mobile requires TF higher than 1.3'
@@ -83,7 +84,9 @@ class TLClassifier(object):
                     print("Dim " + str(x1) + ","+str(y1)+","+str(x2)+","+str(y2))
                     
                     im = Image.fromarray(image)
-                    im.save("tl_a_"+str(self.imgcount)+".png")
+                    if self.DEBUG:
+                        im.save("tl_a_"+str(self.imgcount)+".png")
+                        
                     im = im.crop((x1,y1,x2,y2))
                     
                     tl_im = self.load_image_into_numpy_array(im)
@@ -94,8 +97,9 @@ class TLClassifier(object):
                     
                     dst = cv2.inRange(tl_im, G_MIN, G_MAX)
                     no_green = cv2.countNonZero(dst)
-                    im.save("tl_b_"+str(self.imgcount)+"_"+str(no_green)+".png")
-                    cv2.imwrite("tl_b_"+str(self.imgcount)+"_"+str(no_green)+"_ir.png",dst)
+                    if self.DEBUG:
+                        im.save("tl_b_"+str(self.imgcount)+"_"+str(no_green)+".png")
+                        cv2.imwrite("tl_b_"+str(self.imgcount)+"_"+str(no_green)+"_ir.png",dst)
                     self.imgcount = self.imgcount + 1
                     
                     'if we are not sure, we return red for safety reasons'

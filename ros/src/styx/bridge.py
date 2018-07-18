@@ -45,6 +45,9 @@ class Bridge(object):
         self.angular_vel = 0.
         self.bridge = CvBridge()
 
+        self.every = 1
+        self.every_count = 0
+        
         self.callbacks = {
             '/vehicle/steering_cmd': self.callback_steering,
             '/vehicle/throttle_cmd': self.callback_throttle,
@@ -175,6 +178,12 @@ class Bridge(object):
         self.publishers['dbw_status'].publish(Bool(data))
 
     def publish_camera(self, data):
+        
+        self.every_count=self.every_count+1
+        if self.every_count % self.every != 0:
+            return
+        self.every_count = 0
+        
         imgString = data["image"]
         image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
