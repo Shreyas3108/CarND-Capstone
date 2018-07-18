@@ -8,15 +8,21 @@ class TLClassifier(object):
     def __init__(self):
         self.imgcount = 0
         #TODO load classifier
-        #PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
-        PATH_TO_CKPT = "tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
+        'SSD Mobile requires TF higher than 1.3'
+#         PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_coco_2017_11_08/frozen_inference_graph.pb"
+        PATH_TO_CKPT = "light_classification/tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
+#         PATH_TO_CKPT = "tf_models/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb"
+#         PATH_TO_CKPT = "tf_models/faster_rcnn_resnet101_coco_11_06_2017/frozen_inference_graph.pb"
+        PATH_TO_CKPT = "light_classification/tf_models/faster_rcnn_resnet101_coco_11_06_2017/frozen_inference_graph.pb"
         self.detection_graph = tf.Graph()
         with self. detection_graph.as_default():
             od_graph_def = tf.GraphDef()
             with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
+                print("REading Graph")
                 serialized_graph = fid.read()
                 od_graph_def.ParseFromString(serialized_graph)
                 tf.import_graph_def(od_graph_def, name='')
+                print(".Done")
 
     def get_classification(self, image):
         """Determines the color of the traffic light in the image
@@ -42,6 +48,7 @@ class TLClassifier(object):
                 
                 image_np_expanded = np.expand_dims(image, axis=0)
                 # Actual detection.
+                print("Detection ---")
                 (boxes, scores, classes, num) = sess.run(
                   [detection_boxes, detection_scores, detection_classes, num_detections],
                   feed_dict={image_tensor: image_np_expanded})
@@ -77,14 +84,20 @@ class TLClassifier(object):
                     tl_im =  cv2.cvtColor(tl_im, cv2.COLOR_RGB2HSV)
 
                     G_MIN = np.array([100/2, 160, 160], np.uint8)
-                    G_MAX = np.array([140/2, 255, 255], np.uint8)
+                    G_MAX = np.array([190/2, 255, 255], np.uint8)
                     
                     dst = cv2.inRange(tl_im, G_MIN, G_MAX)
                     no_green = cv2.countNonZero(dst)
                     im.save("tl_b_"+str(self.imgcount)+"_"+str(no_green)+".png")
                     cv2.imwrite("tl_b_"+str(self.imgcount)+"_"+str(no_green)+"_ir.png",dst)
                     self.imgcount = self.imgcount + 1
-                
+                    
+                    'if we are not sure, we return red for safety reasons'
+                    if(no_green > 30):
+                        return TrafficLight.GREEN 
+                    else:
+                        return TrafficLight.RED
+                 
         #TODO implement light color prediction
         return TrafficLight.UNKNOWN
 #         return 0

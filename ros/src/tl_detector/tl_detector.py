@@ -18,6 +18,7 @@ class TLDetector(object):
     def __init__(self):
         rospy.init_node('tl_detector')
 
+        self.light_classifier = None
         self.pose = None
         self.waypoints = None
         self.camera_image = None
@@ -136,7 +137,10 @@ class TLDetector(object):
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "rgb8")
  
         #Get classification
-        return self.light_classifier.get_classification(cv_image)
+        if self.light_classifier != None :
+            return self.light_classifier.get_classification(cv_image)
+        else:
+            return TrafficLight.UNKNOWN
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
