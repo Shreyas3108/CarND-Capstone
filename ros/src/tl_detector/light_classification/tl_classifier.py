@@ -83,13 +83,12 @@ class TLClassifier(object):
                     (x1,y1,x2,y2) = int(img_w*box[1]), int(img_h*box[0]),int(img_w*box[3]), int(img_h*box[2])
                     print("Dim " + str(x1) + ","+str(y1)+","+str(x2)+","+str(y2))
                     
-                    im = Image.fromarray(image)
+                   
                     if self.DEBUG:
+                        im = Image.fromarray(image)
                         im.save("tl_a_"+str(self.imgcount)+".png")
                         
-                    im = im.crop((x1,y1,x2,y2))
-                    
-                    tl_im = self.load_image_into_numpy_array(im)
+                    tl_im = image[y1:y2,x1:x2]
                     tl_im =  cv2.cvtColor(tl_im, cv2.COLOR_RGB2HSV)
 
                     G_MIN = np.array([100/2, 160, 160], np.uint8)
